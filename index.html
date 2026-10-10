@@ -501,11 +501,6 @@ function renderBanner(){
 function checkSlot(){
   const n=slotNow();
   if(lastSlot&&n!==lastSlot){bannerSlot=n;render();}
-  else if(!laterOpen&&!busy){
-    const c=currentCard(tab), sig=c?c.id:"none";
-    if(sig!==lastSig){render();}
-  }
-  const c2=currentCard(tab); lastSig=c2?c2.id:"none";
   lastSlot=n;
 }
 function renderTip(){
@@ -735,7 +730,7 @@ document.querySelectorAll("[data-lang]").forEach(b=>{
     try{const sv=localStorage.getItem("lang");if(sv==="ja"||sv==="en") l=sv;}catch(e){}
   }
   lang=l||"en";
-  S=loadState(); tab=slotNow(); lastSlot=tab; tipOpen=S.tipDate!==today(); save();
+  S=loadState(); tab=slotNow(); lastSlot=tab; tipOpen=false; save();
   applyLang();
   setInterval(function(){if(!document.hidden)checkSlot();},30000);
 })();
