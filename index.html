@@ -111,7 +111,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;ma
 .order li .tx{flex:1;min-width:0;overflow-wrap:anywhere}
 .order li.isdone .tx{opacity:.55;text-decoration:line-through}
 .order li button{border:0;background:#f0e2c4;color:#a84a27;border-radius:10px;width:34px;height:34px;font-size:16px;font-weight:800}
-.order li button[disabled]{opacity:.3;cursor:default}
+.order li button[aria-disabled="true"]{opacity:.3;cursor:default}
 .toggles{margin-top:16px;background:var(--paper);border:2px solid var(--line);border-radius:18px;box-shadow:0 4px 0 var(--shadow);padding:12px 14px;color:#5a4636}
 .toggles h3{margin:0 0 8px;font-size:14px;color:#7a634a}
 .toggles ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -122,7 +122,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;ma
 .toggles li.off button{background:#ddd;color:#666}
 .tools{display:flex;justify-content:center;gap:16px;margin-top:16px;flex-wrap:wrap}
 .link{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px;padding:4px}
-.link[disabled]{opacity:.4;cursor:default;text-decoration:none}
+.link[aria-disabled="true"]{opacity:.4;cursor:default;text-decoration:none}
 .donepanel{position:relative;z-index:1;background:var(--paper);border:2px solid var(--line);border-radius:22px;box-shadow:0 7px 0 var(--shadow);padding:34px 20px;text-align:center;animation:pop .4s ease both}
 .donepanel .big{font-size:76px}
 .donepanel h2{margin:10px 0 6px;font-size:30px;color:var(--accent)}
@@ -227,7 +227,7 @@ const I18N = {
     shareText:"{title} {a}/{b}枚", shareApp:"One Card Home",
     goodnight:"おやすみ 🌙 また明日ね", movedOn:"次の時間帯にきりかえたよ",
     laterToast:"あとでまた出すね", laterAsk:"⏰ いつ、また出す？", later5:"5分後", later30:"30分後", later60:"1時間後", laterCancel:"やめる", laterAt:"{m}にまた出すね", doneToast:"えらい！", undoToast:"ひとつ戻しました", resetToast:"今日の分をリセットしました",
-    nothingUndo:"戻せるものがないよ",
+    nothingUndo:"戻せるものがないよ", noDelete:"消せるのは自分で足したカードだけだよ",
     tipLabel:"💡 今日のコツ", tipOk:"わかった 👍", tipToast:"今日もうっかりゼロでいこう", tipAgain:"💡 今日のコツをもう一度",
     addTitle:"自分のカードを足す（今の時間帯）", addPh:"例：植木に水やり", addAria:"カードの内容", addBtn:"足す",
     added:"カードを足したよ", emptyAdd:"カードの内容を入れてね", deleted:"カードを消しました",
@@ -265,7 +265,7 @@ const I18N = {
     shareText:"{title} {a}/{b} cards", shareApp:"One Card Home",
     goodnight:"Good night 🌙 See you tomorrow", movedOn:"Switched to the next time of day",
     laterToast:"I'll show it again soon", laterAsk:"⏰ When should it come back?", later5:"In 5 min", later30:"In 30 min", later60:"In 1 hour", laterCancel:"Cancel", laterAt:"I'll show it again at {m}", doneToast:"Nice work!", undoToast:"Undone", resetToast:"Today has been reset",
-    nothingUndo:"Nothing to undo",
+    nothingUndo:"Nothing to undo", noDelete:"Only cards you added can be deleted",
     tipLabel:"💡 Today's tip", tipOk:"Got it 👍", tipToast:"Let's have a no-slip day", tipAgain:"💡 Show today's tip again",
     addTitle:"Add your own card (for this time of day)", addPh:"e.g. Water the plants", addAria:"Card text", addBtn:"Add",
     added:"Card added", emptyAdd:"Please type something", deleted:"Card deleted",
@@ -400,10 +400,10 @@ function renderOrder(){
     const li=el("li",S.done[c.id]?"isdone":"");
     li.append(el("span","",c.emoji),el("span","tx",c.text));
     const u=el("button","","↑"); u.type="button"; u.dataset.demo="order-up-"+i;
-    u.setAttribute("aria-label",t("up")+": "+c.text); u.disabled=i===0;
+    u.setAttribute("aria-label",t("up")+": "+c.text); u.setAttribute("aria-disabled",String(i===0));
     u.onclick=()=>moveCustom(c.id,-1);
     const d=el("button","","↓"); d.type="button"; d.dataset.demo="order-down-"+i;
-    d.setAttribute("aria-label",t("down")+": "+c.text); d.disabled=i===list.length-1;
+    d.setAttribute("aria-label",t("down")+": "+c.text); d.setAttribute("aria-disabled",String(i===list.length-1));
     d.onclick=()=>moveCustom(c.id,1);
     li.append(u,d); ul.append(li);
   });
@@ -524,7 +524,7 @@ function render(){
   renderTip();
   renderBanner();
   renderWeek();
-  document.getElementById("btnTip").style.display=tipOpen?"none":"";
+  document.getElementById("btnTip").style.display="";
   // streak
   document.getElementById("streak").textContent=t("streak",{n:S.streak});
   // tabs
@@ -594,8 +594,9 @@ function render(){
   }
   const pr=document.getElementById("praise");
   if(praiseKey){pr.textContent=t(praiseKey);pr.hidden=false;}else pr.hidden=true;
-  document.getElementById("btnUndo").disabled=undoStack.length===0;
-  document.getElementById("btnDelete").style.display=(cur&&cur.custom)?"":"none";
+  document.getElementById("btnUndo").setAttribute("aria-disabled",String(undoStack.length===0));
+  document.getElementById("btnDelete").style.display="";
+  document.getElementById("btnDelete").setAttribute("aria-disabled",String(!(cur&&cur.custom)));
   renderLater(cur);
   renderOrder();
   renderToggles();
@@ -701,7 +702,7 @@ document.getElementById("btnDelete").onclick=()=>{
     delete S.done[cur.id]; delete S.later[cur.id];
     undoStack=undoStack.filter(h=>h.id!==cur.id);
     save(); toast(t("deleted")); render();
-  }
+  }else toast(t("noDelete"));
 };
 document.getElementById("btnReset").onclick=()=>{
   S.done={};S.later={};S.wake={};undoStack=[];praiseKey=null;laterOpen=false;
