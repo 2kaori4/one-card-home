@@ -1,2 +1,19 @@
-# one-card-home
-時間帯ごとに1枚ずつカードが出て、「した✓」で進めながら暮らしのうっかりを防ぐアプリ
+# One Card Home
+
+
+
+- ▶ **Try it:** https://2kaori4.github.io/one-card-home/
+
+## About
+
+See the app and [IDEA.md](IDEA.md) (the idea log, in Japanese).
+
+## How it was made
+
+Built by shaping the idea together with AI (Claude) and publishing the AI-written code.
+The full conversation is in [IDEA.md](IDEA.md) (Japanese).
+
+## Files
+
+- `index.html` — the app (a single self-contained file)
+- `IDEA.md` — the idea log

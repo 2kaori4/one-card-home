@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; base-uri 'none'; form-action 'none'">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Card Home</title>
+<style>
+:root{
+  --bg:#fbf3e4; --ink:#5a4636; --muted:#7a634a; --line:#f0e2c4; --shadow:#ecdcbc;
+  --accent:#d4633a; --accent-soft:#e8845a; --paper:#fffdf8; --sage:#7f9a6b;
+  --page-ink:#5a4636; --dot:#f3e6c8;
+}
+body[data-theme="morning"]{--bg:#fff1ae;--dot:#f7dc7a;--line:#f2d676;--shadow:#e6c553;--paper:#fffdf0}
+body[data-theme="night"]{--bg:#2f3350;--dot:#3a3f62;--line:#e8d9b0;--shadow:#1f2238;--paper:#fff6e0;--page-ink:#f6ead2;--muted:#cfc2a8}
+body[data-theme="night"] .tab{background:#3b3f63;border-color:#4a4f7a;box-shadow:0 3px 0 #1f2238;color:#cfc2a8}
+body[data-theme="night"] .tab[aria-selected="true"]{background:#4a4f7a;border-color:var(--accent-soft);color:#fff}
+body[data-theme="night"] .lang,body[data-theme="night"] .streak{background:#3b3f63;border-color:#4a4f7a;color:#f6ead2}
+body[data-theme="night"] .add{background:#3b3f63;border-color:#6a6f9a}
+body[data-theme="night"] .add input{color:#5a4636}
+body[data-theme="night"] .praise{background:#f6ead2;color:#2f3350}
+body[data-theme="night"] .deck::before,body[data-theme="night"] .deck::after{background:#e9ddc0}
+.card,.tip,.donepanel{color:#5a4636;--muted:#7a634a}
+.tip .lab,.tip p,.card .hint,.donepanel p{color:#7a634a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100vh; color:var(--page-ink); transition:background-color .5s,color .5s;
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;
+  background-color:var(--bg);
+  background-image:radial-gradient(var(--dot) 1.2px,transparent 1.4px);
+  background-size:22px 22px;
+  line-height:1.5;
+}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #3f7fd0;outline-offset:2px}
+.wrap{max-width:520px;margin:0 auto;padding:14px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}
+.brand .logo{font-size:30px}
+.brand h1{margin:0;font-family:Georgia,"Hiragino Mincho ProN",serif;font-size:21px;color:var(--accent);line-height:1.1}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.lang{display:flex;background:#fff;border:2px solid var(--line);border-radius:20px;overflow:hidden}
+.lang button{border:0;background:transparent;padding:4px 11px;font-size:13px;font-weight:700;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--accent-soft);color:#fff;background:var(--accent)}
+.streak{font-size:12px;font-weight:700;background:#fff;border:2px solid var(--line);border-radius:20px;padding:2px 10px}
+.week{background:var(--paper);border:2px solid var(--line);border-radius:20px;box-shadow:0 5px 0 var(--shadow);padding:10px 14px 12px;margin-bottom:16px;color:#5a4636}
+.week .wt{font-size:13px;font-weight:700;color:#7a634a;text-align:center}
+.week .wr{display:flex;justify-content:space-between;margin-top:6px;text-align:center;font-size:12px;color:#7a634a}
+.week .wd{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.week .wc{width:28px;height:28px;border-radius:50%;border:2px solid #e3d3ad;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800}
+.week .wc.on{background:var(--sage);border-color:var(--sage)}
+.week .wc.today{border:2px dashed var(--accent)}
+.week .wc.today.on{border-style:solid}
+.banner{display:flex;align-items:center;gap:10px;background:#5a4636;color:#fff;border-radius:18px;padding:12px 14px;margin-bottom:14px;font-size:15px;font-weight:700;animation:pop .4s ease both;box-shadow:0 4px 0 #3e2f23}
+.banner .bt{flex:1;line-height:1.4}
+.banner button{border:0;border-radius:16px;padding:6px 12px;font-size:13px;font-weight:800;background:#fff;color:#5a4636}
+.banner button.go{background:var(--accent-soft);color:#fff}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.tab{position:relative;border:2px solid var(--line);background:#fff8ea;border-radius:16px;padding:8px 4px 7px;text-align:center;font-size:13px;font-weight:700;color:var(--muted);box-shadow:0 3px 0 var(--shadow);transition:transform .15s}
+.tab:active{transform:translateY(2px);box-shadow:0 1px 0 var(--shadow)}
+.tab .e{display:block;font-size:22px}
+.tab .c{display:block;font-size:11px;font-weight:600;opacity:.9}
+.tab[aria-selected="true"]{background:#fff;border-color:var(--accent-soft);color:var(--ink)}
+.tab .now{position:absolute;top:-8px;right:6px;background:var(--sage);color:#fff;font-size:10px;padding:0 7px;border-radius:10px;font-weight:700}
+.tab.full .c::after{content:" ✓"; color:var(--sage)}
+.tip{position:relative;background:var(--paper);border:2px solid var(--line);border-radius:22px;box-shadow:0 7px 0 var(--shadow);padding:20px 20px 22px;text-align:center;margin-bottom:26px;animation:pop .4s ease both;transform:rotate(.8deg)}
+.tip .lab{font-size:13px;font-weight:700;color:var(--muted)}
+.tip .emoji{font-size:48px;line-height:1.2;margin-top:6px}
+.tip h2{margin:6px 0 4px;font-size:19px;line-height:1.5}
+.tip p{margin:0 0 14px;font-size:13px;color:var(--muted)}
+.tip .btn{padding:10px 28px;font-size:15px;background:var(--accent-soft);color:#fff;box-shadow:0 4px 0 #b9623a}
+.meta{text-align:center;font-size:14px;color:var(--muted);font-weight:700;margin-bottom:10px}
+.dots{display:flex;justify-content:center;gap:7px;margin-bottom:14px;min-height:12px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid #d9c49a;background:transparent;transition:all .2s}
+.dot.done{background:var(--sage);border-color:var(--sage)}
+.dot.cur{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.25)}
+.deck{position:relative;padding:0 6px 10px}
+.deck::before,.deck::after{content:"";position:absolute;left:14px;right:14px;top:8px;bottom:0;background:#fff;border:2px solid var(--line);border-radius:20px;z-index:0}
+.deck::before{transform:rotate(2.2deg)}
+.deck::after{transform:rotate(-1.6deg)}
+.deck.last::before,.deck.last::after{display:none}
+.card{position:relative;z-index:1;background:var(--paper);border:2px solid var(--line);border-radius:22px;box-shadow:0 7px 0 var(--shadow);padding:32px 20px 28px;text-align:center;animation:pop .35s ease both;transform:rotate(-.5deg)}
+.card .emoji{font-size:64px;line-height:1.1}
+.card h2{margin:12px 0 6px;font-size:24px;line-height:1.35}
+.card .hint{margin:0;font-size:14px;color:var(--muted)}
+.card .tape{position:absolute;top:-10px;left:50%;width:70px;height:20px;margin-left:-35px;background:rgba(232,132,90,.35);transform:rotate(-3deg);border-radius:3px}
+.card.out-done{animation:outDone .3s ease forwards}
+.card.out-later{animation:outLater .3s ease forwards}
+.card .stamp{position:absolute;right:16px;top:14px;font-size:30px;opacity:0}
+.card.out-done .stamp{opacity:1}
+@keyframes pop{from{opacity:0;transform:translateY(14px) rotate(2deg) scale(.96)}to{opacity:1;transform:rotate(-.5deg)}}
+@keyframes outDone{to{opacity:0;transform:translate(60px,-30px) rotate(8deg)}}
+@keyframes outLater{to{opacity:0;transform:translate(-70px,10px) rotate(-8deg)}}
+.actions{display:flex;gap:12px;justify-content:center;margin-top:26px}
+.btn{border:0;border-radius:28px;padding:14px 26px;font-weight:800;font-size:17px;transition:transform .12s}
+.btn:active{transform:scale(.96)}
+.btn.main{background:var(--accent);color:#fff;padding:14px 38px;box-shadow:0 4px 0 #a84a27}
+.btn.sub{background:var(--line);color:var(--ink);box-shadow:0 4px 0 #dfcba2}
+.laterbox{margin-top:22px;text-align:center;animation:pop .3s ease both}
+.laterbox .lt{font-size:13px;font-weight:700;color:var(--page-ink);margin-bottom:8px}
+.laterbox .lr{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.laterbox .lr button{border:0;border-radius:22px;padding:10px 16px;font-size:15px;font-weight:800;background:var(--line);color:#5a4636;box-shadow:0 3px 0 #dfcba2}
+.laterbox .lr button.cancel{background:transparent;box-shadow:none;text-decoration:underline;font-weight:600;color:var(--page-ink)}
+.order{margin-top:16px;background:var(--paper);border:2px solid var(--line);border-radius:18px;box-shadow:0 4px 0 var(--shadow);padding:12px 14px;color:#5a4636}
+.order h3{margin:0 0 8px;font-size:14px;color:#7a634a}
+.order ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.order li{display:flex;align-items:center;gap:8px;background:#fbf3e4;border:2px solid #f0e2c4;border-radius:14px;padding:6px 8px 6px 12px;font-weight:700;font-size:14px}
+.order li .tx{flex:1;min-width:0;overflow-wrap:anywhere}
+.order li.isdone .tx{opacity:.55;text-decoration:line-through}
+.order li button{border:0;background:#f0e2c4;color:#a84a27;border-radius:10px;width:34px;height:34px;font-size:16px;font-weight:800}
+.order li button[disabled]{opacity:.3;cursor:default}
+.tools{display:flex;justify-content:center;gap:16px;margin-top:16px;flex-wrap:wrap}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px;padding:4px}
+.link[disabled]{opacity:.4;cursor:default;text-decoration:none}
+.donepanel{position:relative;z-index:1;background:var(--paper);border:2px solid var(--line);border-radius:22px;box-shadow:0 7px 0 var(--shadow);padding:34px 20px;text-align:center;animation:pop .4s ease both}
+.donepanel .big{font-size:76px;animation:bob 2.6s ease-in-out 3}
+.donepanel h2{margin:10px 0 6px;font-size:30px;color:var(--accent)}
+.donepanel p{margin:0 0 22px;color:var(--muted);font-size:15px}
+.recap{background:#fbf3e4;border:2px solid #f0e2c4;border-radius:18px;padding:12px 14px 10px;margin:0 0 22px;color:#5a4636}
+.recap .rt{font-size:13px;font-weight:700;color:#7a634a}
+.recap .rn{font-size:30px;font-weight:800;color:var(--accent);line-height:1.2;margin:2px 0 8px}
+.recap .rbars{display:flex;justify-content:space-between;gap:6px}
+.recap .rb{flex:1;display:flex;flex-direction:column;align-items:center}
+.recap .rbar{height:80px;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.recap .rbar i{display:block;width:78%;max-width:30px;min-height:4px;border-radius:6px;background:var(--sage);transition:height .5s}
+.recap .rb.today i{background:var(--accent-soft)}
+.recap .rl{font-size:12px;color:#7a634a;margin-top:4px}
+@keyframes bob{50%{transform:translateY(-6px) rotate(4deg)}}
+.add{margin-top:30px;background:#fff8ea;border:2px dashed #dcc799;border-radius:18px;padding:14px}
+.add h3{margin:0 0 8px;font-size:14px}
+.add form{display:flex;gap:8px}
+.add input{flex:1;min-width:0;border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff;font-size:15px}
+.add .btn{padding:10px 16px;font-size:14px;background:var(--sage);color:#fff;box-shadow:0 3px 0 #5f784f}
+.praise{margin:14px auto 0;max-width:340px;text-align:center;background:var(--ink);color:#fff;border-radius:22px;padding:10px 16px;font-size:15px;font-weight:700;animation:pop .35s ease both}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,30px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:22px;font-size:14px;opacity:0;pointer-events:none;transition:all .25s;z-index:50;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+#confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:40}
+#confetti span{position:absolute;top:-30px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+@media (min-width:700px){.wrap{padding-top:30px}.card h2{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="logo" aria-hidden="true">🏠</span>
+      <div><h1>One Card Home</h1><p data-i18n="tagline"></p></div>
+    </div>
+    <div class="right">
+      <div class="lang" data-demo="lang-switch" role="group" data-i18n-aria="langLabel">
+        <button type="button" data-lang="ja" data-demo="lang-ja" aria-pressed="false">日本語</button>
+        <button type="button" data-lang="en" data-demo="lang-en" aria-pressed="false">EN</button>
+      </div>
+      <div class="streak" data-demo="streak" id="streak"></div>
+    </div>
+  </header>
+
+  <section class="week" id="week" data-demo="week-calendar" data-i18n-aria="weekLabel"></section>
+
+  <div class="banner" id="banner" data-demo="now-banner" role="status" aria-live="polite" hidden></div>
+
+  <nav class="tabs" role="tablist" id="tabs" data-demo="slot-tabs" data-i18n-aria="tabsLabel"></nav>
+
+  <main data-demo="card-area">
+    <section class="tip" id="tip" data-demo="tip-card" hidden></section>
+    <div class="meta" id="meta"></div>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+    <div class="deck" id="deck"></div>
+    <div class="praise" id="praise" data-demo="praise" role="status" aria-live="polite" hidden></div>
+    <div class="laterbox" id="laterbox" data-demo="later-choices" hidden></div>
+    <div class="actions" id="actions">
+      <button class="btn main" id="btnDone" data-demo="done-button" type="button" data-i18n="done"></button>
+      <button class="btn sub" id="btnLater" data-demo="later-button" type="button" data-i18n="later"></button>
+    </div>
+    <section class="order" id="order" data-demo="order-list" hidden></section>
+    <div class="tools">
+      <button class="link" id="btnTip" data-demo="tip-again" type="button" data-i18n="tipAgain"></button>
+      <button class="link" id="btnUndo" data-demo="undo-button" type="button" data-i18n="undo"></button>
+      <button class="link" id="btnDelete" data-demo="delete-card" type="button" data-i18n="deleteCard"></button>
+      <button class="link" id="btnReset" data-demo="reset-today" type="button" data-i18n="reset"></button>
+    </div>
+  </main>
+
+  <section class="add" aria-labelledby="addTitle">
+    <h3 id="addTitle" data-i18n="addTitle"></h3>
+    <form id="addForm" data-demo="add-form">
+      <input id="addInput" data-demo="add-input" type="text" maxlength="30" autocomplete="off" data-i18n-ph="addPh" data-i18n-aria="addAria">
+      <button class="btn" data-demo="add-button" type="submit" data-i18n="addBtn"></button>
+    </form>
+  </section>
+</div>
+<div id="confetti" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" data-demo="toast"></div>
+
+<script>
+const I18N = {
+  ja: {
+    title:"One Card Home", tagline:"1枚ずつ、暮らしを整える",
+    langLabel:"言語", tabsLabel:"時間帯",
+    streak:"🔥 {n}日連続", now:"いま", weekLabel:"今週の記録", weekTitle:"今週のようす",
+    recapTitle:"📊 今週のふりかえり", recapCount:"{a} / {b} 枚", recapAria:"今週にできたカードの枚数のグラフ",
+    wd0:"日", wd1:"月", wd2:"火", wd3:"水", wd4:"木", wd5:"金", wd6:"土",
+    morning:"出かける前", home:"帰宅したら", night:"寝る前",
+    bannerOpen:"{e} {slot}のカードがひらいたよ", bannerGo:"見る", bannerClose:"閉じる",
+    done:"した ✓", later:"あとで", undo:"↩ ひとつ戻る", deleteCard:"このカードを消す", reset:"今日をやり直す",
+    meta:"{slot} ・ {i} / {n}",
+    doneTitle_night:"今夜もOK！", doneTitle_morning:"今日もいってらっしゃい！", doneTitle_home:"おかえり、OK！",
+    doneSub_night:"{n}枚ぜんぶ完了。ぐっすり眠れそうだね", doneSub_morning:"{n}枚ぜんぶ完了。安心して出かけよう", doneSub_home:"{n}枚ぜんぶ完了。ほっとひと息つこう",
+    doneBtn_night:"おやすみなさい", doneBtn_morning:"次の時間帯へ", doneBtn_home:"次の時間帯へ",
+    goodnight:"おやすみ 🌙 また明日ね", movedOn:"次の時間帯にきりかえたよ",
+    laterToast:"あとでまた出すね", laterAsk:"⏰ いつ、また出す？", later5:"5分後", later30:"30分後", later60:"1時間後", laterCancel:"やめる", laterAt:"{m}にまた出すね", doneToast:"えらい！", undoToast:"ひとつ戻しました", resetToast:"今日の分をリセットしました",
+    nothingUndo:"戻せるものがないよ",
+    tipLabel:"💡 今日のコツ", tipOk:"わかった 👍", tipToast:"今日もうっかりゼロでいこう", tipAgain:"💡 今日のコツをもう一度",
+    addTitle:"自分のカードを足す（今の時間帯）", addPh:"例：植木に水やり", addAria:"カードの内容", addBtn:"足す",
+    added:"カードを足したよ", emptyAdd:"カードの内容を入れてね", deleted:"カードを消しました",
+    custom:"自分で足したカード", emptyDeck:"カードがありません",
+    orderTitle:"↕ 自分のカードの順番", up:"上へ", down:"下へ", moved:"順番を変えたよ",
+    praise_custom:"✨ ナイス！自分のルール、えらい",
+    praise_m1:"✨ ナイス！これで安心して出かけられるね",
+    praise_m2:"🌿 ばっちり。留守中も安心だね",
+    praise_m3:"☔ 準備オッケー。いってらっしゃい",
+    praise_m4:"🔑 完璧！忘れものゼロでいこう",
+    praise_h1:"🧼 えらい！今日もお疲れさま",
+    praise_h2:"📦 チェックありがとう。荷物ぶじかな",
+    praise_h3:"👕 ふわふわ洗濯物、いいね",
+    praise_h4:"💧 ピカピカ！明日も気持ちよく飲めるよ",
+    praise_n1:"🚪 ナイス！これで安心だね",
+    praise_n2:"🔥 指さし確認、さすが！",
+    praise_n3:"🔋 明日も元気にスタートできるね",
+    praise_n4:"🌙 ぐっすり眠れそうだね"
+  },
+  en: {
+    title:"One Card Home", tagline:"One card at a time, a calmer home",
+    langLabel:"Language", tabsLabel:"Time of day",
+    streak:"🔥 {n}-day streak", now:"Now", weekLabel:"This week", weekTitle:"This week",
+    recapTitle:"📊 This week's recap", recapCount:"{a} / {b} cards", recapAria:"Chart of cards completed this week",
+    wd0:"Sun", wd1:"Mon", wd2:"Tue", wd3:"Wed", wd4:"Thu", wd5:"Fri", wd6:"Sat",
+    morning:"Before leaving", home:"Back home", night:"Before bed",
+    bannerOpen:"{e} Your \"{slot}\" cards are open", bannerGo:"Show", bannerClose:"Close",
+    done:"Done ✓", later:"Later", undo:"↩ Undo", deleteCard:"Delete this card", reset:"Start today over",
+    meta:"{slot} · {i} / {n}",
+    doneTitle_night:"Tonight is all set!", doneTitle_morning:"Have a great day!", doneTitle_home:"Welcome home, all set!",
+    doneSub_night:"All {n} cards done. You can sleep well.", doneSub_morning:"All {n} cards done. Head out with peace of mind.", doneSub_home:"All {n} cards done. Time to relax.",
+    doneBtn_night:"Good night", doneBtn_morning:"Next time of day", doneBtn_home:"Next time of day",
+    goodnight:"Good night 🌙 See you tomorrow", movedOn:"Switched to the next time of day",
+    laterToast:"I'll show it again soon", laterAsk:"⏰ When should it come back?", later5:"In 5 min", later30:"In 30 min", later60:"In 1 hour", laterCancel:"Cancel", laterAt:"I'll show it again at {m}", doneToast:"Nice work!", undoToast:"Undone", resetToast:"Today has been reset",
+    nothingUndo:"Nothing to undo",
+    tipLabel:"💡 Today's tip", tipOk:"Got it 👍", tipToast:"Let's have a no-slip day", tipAgain:"💡 Show today's tip again",
+    addTitle:"Add your own card (for this time of day)", addPh:"e.g. Water the plants", addAria:"Card text", addBtn:"Add",
+    added:"Card added", emptyAdd:"Please type something", deleted:"Card deleted",
+    custom:"Your own card", emptyDeck:"No cards",
+    orderTitle:"↕ Order of your cards", up:"Move up", down:"Move down", moved:"Order changed",
+    praise_custom:"✨ Nice! Great job keeping your own rule",
+    praise_m1:"✨ Nice! You can head out with peace of mind",
+    praise_m2:"🌿 Perfect. Home is safe while you're away",
+    praise_m3:"☔ All set. Have a good day",
+    praise_m4:"🔑 Great! Zero forgotten things today",
+    praise_h1:"🧼 Well done! Good work today",
+    praise_h2:"📦 Thanks for checking. Hope the parcel is safe",
+    praise_h3:"👕 Fresh, fluffy laundry. Lovely",
+    praise_h4:"💧 Sparkling! Fresh water tomorrow too",
+    praise_n1:"🚪 Nice! Now you can relax",
+    praise_n2:"🔥 Pointing and checking. Well done!",
+    praise_n3:"🔋 Ready for a bright tomorrow",
+    praise_n4:"🌙 You'll sleep well tonight"
+  }
+};
+
+const SLOTS = [
+  {id:"morning", emoji:"🌅"},
+  {id:"home", emoji:"🏠"},
+  {id:"night", emoji:"🌙"}
+];
+const CARDS = [
+  {id:"m1",slot:"morning",emoji:"🔌",ja:"ヘアアイロンのコンセント抜いた？",en:"Did you unplug the hair iron?",jaH:"抜き忘れは、あとで一番こわい",enH:"Forgetting this is the scariest one later"},
+  {id:"m2",slot:"morning",emoji:"🪟",ja:"窓は閉めた？",en:"Are the windows closed?",jaH:"風が強い日は特に",enH:"Especially on windy days"},
+  {id:"m3",slot:"morning",emoji:"🌂",ja:"今日は傘いる？",en:"Do you need an umbrella today?",jaH:"午後から雨の予報かも",enH:"Rain may come in the afternoon"},
+  {id:"m4",slot:"morning",emoji:"🔑",ja:"財布・スマホ・鍵、持った？",en:"Wallet, phone, keys — got them?",jaH:"玄関でひと呼吸",enH:"Take a breath at the door"},
+  {id:"h1",slot:"home",emoji:"🧼",ja:"手洗い・うがいした？",en:"Washed your hands and gargled?",jaH:"かえったらまずこれ",enH:"First thing when you come in"},
+  {id:"h2",slot:"home",emoji:"📦",ja:"宅配ボックスを見た？",en:"Checked the parcel box?",jaH:"不在票もポストに入ってるかも",enH:"A missed-delivery slip may be in the mailbox"},
+  {id:"h3",slot:"home",emoji:"👕",ja:"洗濯物を取り込んだ？",en:"Brought in the laundry?",jaH:"夜露でしめる前に",enH:"Before the night dew gets it"},
+  {id:"h4",slot:"home",emoji:"💧",ja:"水筒を洗った？",en:"Washed your water bottle?",jaH:"ふたとパッキンもね",enH:"Don't forget the lid and seal"},
+  {id:"n1",slot:"night",emoji:"🚪",ja:"玄関の鍵は閉めた？",en:"Did you lock the front door?",jaH:"チェーンもかけると安心",enH:"The chain adds peace of mind"},
+  {id:"n2",slot:"night",emoji:"🔥",ja:"コンロの火とガス栓はOK？",en:"Stove off and gas valve closed?",jaH:"指さし確認でもう一度",enH:"Point and check once more"},
+  {id:"n3",slot:"night",emoji:"🔌",ja:"スマホを充電した？",en:"Is your phone charging?",jaH:"ついでに明日の天気もチェック",enH:"While you're at it, check tomorrow's weather"},
+  {id:"n4",slot:"night",emoji:"🪟",ja:"窓とカーテンを閉めた？",en:"Windows and curtains closed?",jaH:"エアコンのタイマーも",enH:"And set the AC timer"}
+];
+
+const TIPS = [
+  {emoji:"🔌",ja:"出かける前に、玄関で指さし確認してみよう",en:"Point and check at the door before you leave",jaH:"声に出すと忘れにくい",enH:"Saying it out loud helps you remember"},
+  {emoji:"🔑",ja:"鍵の置き場所を1か所に決めよう",en:"Pick one spot for your keys",jaH:"探す時間がなくなるよ",enH:"No more searching in the morning"},
+  {emoji:"📸",ja:"コンロやアイロンは、消したら写真を1枚",en:"Snap a photo after turning off the stove or iron",jaH:"外出先で不安になったら見返せる",enH:"Look back at it if you worry while out"},
+  {emoji:"⏰",ja:"「あとで」は、タイマーとセットにしよう",en:"Pair \"later\" with a phone timer",jaH:"5分後に鳴らせば忘れない",enH:"Set it for 5 minutes and it won't slip"},
+  {emoji:"🎒",ja:"明日の持ち物を、前の夜に玄関へ",en:"Gather tomorrow's things by the door tonight",jaH:"朝のバタバタが減るよ",enH:"Fewer rushed mornings"},
+  {emoji:"🚪",ja:"鍵をかけたら、ドアノブを一度引いてみよう",en:"Tug the knob once after locking",jaH:"「閉めた」感覚が記憶に残る",enH:"The feeling of locking stays in memory"},
+  {emoji:"📋",ja:"毎日同じ順番でやると、習慣になりやすい",en:"Do things in the same order every day",jaH:"考えなくても体が動くよ",enH:"Your body will do it without thinking"}
+];
+let laterOpen = false;
+let tipOpen = false;
+let bannerSlot = null;
+let lastSlot = null;
+const KEY = "onecardhome.v1";
+let lang = "en";
+let tab = "night";
+let history = [];
+let busy = false;
+let praiseKey = null;
+let S = null;
+
+function today(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function yesterday(){const d=new Date(Date.now()-864e5);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function slotNow(){const h=new Date().getHours();return h>=4&&h<11?"morning":(h>=11&&h<20?"home":"night");}
+function loadState(){
+  let s=null;
+  try{const raw=localStorage.getItem(KEY); if(raw) s=JSON.parse(raw);}catch(e){}
+  if(!s||typeof s!=="object") s={streak:6,lastDate:yesterday(),custom:[]};
+  if(!Array.isArray(s.custom)) s.custom=[];
+  if(!s.hist||typeof s.hist!=="object"){
+    s.hist={};
+    const seed=[12,10,12,9,11,12];
+    for(let i=1;i<=6;i++) s.hist[dkey(new Date(Date.now()-i*864e5))]=seed[i-1];
+  }
+  if(s.date&&s.date!==today()&&s.done) s.hist[s.date]=Object.keys(s.done).length;
+  if(s.date!==today()){s.date=today();s.done={};s.later={};}
+  s.done=s.done||{}; s.later=s.later||{};
+  return s;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function t(k,v){
+  let s=(I18N[lang]&&I18N[lang][k])||I18N.en[k]||k;
+  if(v) for(const x in v) s=s.split("{"+x+"}").join(v[x]);
+  return s;
+}
+function cardsFor(slot){
+  const base=CARDS.filter(c=>c.slot===slot);
+  const cu=S.custom.filter(c=>c.slot===slot).map(c=>({id:c.id,slot:c.slot,emoji:c.emoji,ja:c.text,en:c.text,jaH:t("custom"),enH:"",custom:true}));
+  return base.concat(cu);
+}
+function moveCustom(id,dir){
+  const slotCards=S.custom.filter(c=>c.slot===tab);
+  const i=slotCards.findIndex(c=>c.id===id), j=i+dir;
+  if(i<0||j<0||j>=slotCards.length) return;
+  const a=S.custom.indexOf(slotCards[i]), b=S.custom.indexOf(slotCards[j]);
+  const tmp=S.custom[a]; S.custom[a]=S.custom[b]; S.custom[b]=tmp;
+  save(); toast(t("moved")); render();
+}
+function renderOrder(){
+  const box=document.getElementById("order");
+  box.innerHTML="";
+  const list=S.custom.filter(c=>c.slot===tab);
+  if(list.length<2){box.hidden=true;return;}
+  box.append(el("h3","",t("orderTitle")));
+  const ul=el("ul","");
+  list.forEach((c,i)=>{
+    const li=el("li",S.done[c.id]?"isdone":"");
+    li.append(el("span","",c.emoji),el("span","tx",c.text));
+    const u=el("button","","↑"); u.type="button"; u.dataset.demo="order-up-"+i;
+    u.setAttribute("aria-label",t("up")+": "+c.text); u.disabled=i===0;
+    u.onclick=()=>moveCustom(c.id,-1);
+    const d=el("button","","↓"); d.type="button"; d.dataset.demo="order-down-"+i;
+    d.setAttribute("aria-label",t("down")+": "+c.text); d.disabled=i===list.length-1;
+    d.onclick=()=>moveCustom(c.id,1);
+    li.append(u,d); ul.append(li);
+  });
+  box.append(ul); box.hidden=false;
+}
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.title=t("title");
+  document.querySelectorAll("[data-i18n]").forEach(n=>{n.textContent=t(n.dataset.i18n);});
+  document.querySelectorAll("[data-i18n-ph]").forEach(n=>{n.placeholder=t(n.dataset.i18nPh);});
+  document.querySelectorAll("[data-i18n-aria]").forEach(n=>{n.setAttribute("aria-label",t(n.dataset.i18nAria));});
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===lang)));
+  render();
+}
+
+function currentCard(slot){
+  const rem=cardsFor(slot).map((c,i)=>({c,i})).filter(x=>!S.done[x.c.id]);
+  const nw=Date.now();
+  const ready=rem.filter(x=>!((S.wake||{})[x.c.id]>nw));
+  const pool=ready.length?ready:rem;
+  pool.sort((a,b)=>(((S.wake||{})[a.c.id]||0)>nw?1:0)-(((S.wake||{})[b.c.id]||0)>nw?1:0)||((S.later[a.c.id]||0)-(S.later[b.c.id]||0))||(a.i-b.i));
+  return pool.length?pool[0].c:null;
+}
+
+function dkey(d){return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function allCards(){let a=[];SLOTS.forEach(s=>{a=a.concat(cardsFor(s.id));});return a;}
+function weekStats(){
+  const all=allCards(), total=all.length;
+  const now=new Date(), days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+    let n;
+    if(i===0) n=all.filter(c=>S.done[c.id]).length;
+    else n=Math.min(total,(S.hist&&S.hist[dkey(d)])||0);
+    days.push({wd:d.getDay(),n:n,today:i===0});
+  }
+  return {days:days,total:total,sum:days.reduce((a,x)=>a+x.n,0)};
+}
+function recapNode(){
+  const w=weekStats();
+  const box=el("div","recap"); box.dataset.demo="week-recap";
+  box.setAttribute("role","img"); box.setAttribute("aria-label",t("recapAria")+": "+t("recapCount",{a:w.sum,b:w.total*7}));
+  box.append(el("div","rt",t("recapTitle")),el("div","rn",t("recapCount",{a:w.sum,b:w.total*7})));
+  const bars=el("div","rbars");
+  w.days.forEach(d=>{
+    const col=el("div","rb"+(d.today?" today":""));
+    const bar=el("div","rbar"), i=document.createElement("i");
+    i.style.height=(w.total?Math.round(d.n/w.total*100):0)+"%";
+    i.title=d.n+"/"+w.total;
+    bar.append(i);
+    col.append(bar,el("div","rl",t("wd"+d.wd)));
+    bars.append(col);
+  });
+  box.append(bars);
+  return box;
+}
+function renderWeek(){
+  const box=document.getElementById("week"); box.innerHTML="";
+  const now=new Date(), nightDone=cardsFor("night").every(c=>S.done[c.id]);
+  const finishedToday=S.lastDate===today()||nightDone;
+  const row=el("div","wr");
+  for(let i=6;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+    let on;
+    if(i===0) on=finishedToday;
+    else{
+      const last=finishedToday?0:1;
+      on=S.streak>0&&i>=last&&(i-last)<S.streak;
+    }
+    const wd=el("div","wd");
+    const c=el("div","wc"+(on?" on":"")+(i===0?" today":""),on?"✓":"");
+    wd.append(el("span","",t("wd"+d.getDay())),c);
+    row.append(wd);
+  }
+  box.append(el("div","wt","📅 "+t("weekTitle")+" ・ "+t("streak",{n:S.streak})),row);
+}
+function renderBanner(){
+  const bn=document.getElementById("banner");
+  bn.innerHTML="";
+  if(!bannerSlot){bn.hidden=true;return;}
+  const s=SLOTS.find(x=>x.id===bannerSlot);
+  bn.append(el("div","bt",t("bannerOpen",{e:s.emoji,slot:t(s.id)})));
+  if(tab!==bannerSlot){
+    const g=el("button","go",t("bannerGo")); g.type="button"; g.dataset.demo="banner-go";
+    g.onclick=()=>{tab=bannerSlot;bannerSlot=null;render();};
+    bn.append(g);
+  }
+  const x=el("button","",t("bannerClose")); x.type="button"; x.dataset.demo="banner-close";
+  x.onclick=()=>{bannerSlot=null;render();};
+  bn.append(x);
+  bn.hidden=false;
+}
+function checkSlot(){
+  const n=slotNow();
+  if(lastSlot&&n!==lastSlot){bannerSlot=n;render();}
+  else if(!laterOpen&&!busy){render();}
+  lastSlot=n;
+}
+function renderTip(){
+  const box=document.getElementById("tip");
+  box.innerHTML="";
+  if(!tipOpen){box.hidden=true;return;}
+  const tp=TIPS[Math.floor(Date.now()/864e5)%TIPS.length];
+  const b=el("button","btn",t("tipOk")); b.type="button"; b.dataset.demo="tip-ok";
+  b.onclick=()=>{tipOpen=false;S.tipDate=today();save();toast(t("tipToast"));render();};
+  box.append(el("div","lab",t("tipLabel")),el("div","emoji",tp.emoji),el("h2","",tp[lang]),el("p","",lang==="ja"?tp.jaH:tp.enH),b);
+  box.hidden=false;
+}
+
+function render(){
+  document.body.dataset.theme=tab;
+  renderTip();
+  renderBanner();
+  renderWeek();
+  document.getElementById("btnTip").style.display=tipOpen?"none":"";
+  // streak
+  document.getElementById("streak").textContent=t("streak",{n:S.streak});
+  // tabs
+  const tabs=document.getElementById("tabs"); tabs.innerHTML="";
+  const nowSlot=slotNow();
+  SLOTS.forEach(s=>{
+    const cs=cardsFor(s.id), d=cs.filter(c=>S.done[c.id]).length;
+    const b=el("button","tab"+(d===cs.length&&cs.length?" full":""));
+    b.type="button"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",String(s.id===tab));
+    b.dataset.demo="tab-"+s.id;
+    b.append(el("span","e",s.emoji),el("span","",t(s.id)),el("span","c",d+"/"+cs.length));
+    if(s.id===nowSlot) b.append(el("span","now",t("now")));
+    b.onclick=()=>{tab=s.id;render();};
+    tabs.append(b);
+  });
+  const cs=cardsFor(tab), doneN=cs.filter(c=>S.done[c.id]).length;
+  const cur=currentCard(tab);
+  const deck=document.getElementById("deck"), actions=document.getElementById("actions");
+  const meta=document.getElementById("meta"), dots=document.getElementById("dots");
+  const slotEmoji=SLOTS.find(s=>s.id===tab).emoji;
+  deck.innerHTML=""; dots.innerHTML="";
+  cs.forEach(c=>{dots.append(el("span","dot"+(S.done[c.id]?" done":(cur&&cur.id===c.id?" cur":""))));});
+  if(cur){
+    meta.textContent=t("meta",{slot:slotEmoji+" "+t(tab),i:doneN+1,n:cs.length});
+    deck.className="deck"+(cs.length-doneN<=1?" last":"");
+    const card=el("div","card"); card.id="card"; card.dataset.demo="current-card";
+    card.append(el("div","tape"),el("div","stamp","✅"),el("div","emoji",cur.emoji),el("h2","",cur[lang]));
+    const hint=lang==="ja"?cur.jaH:cur.enH;
+    if(cur.custom) card.append(el("p","hint",t("custom"))); else card.append(el("p","hint",hint));
+    deck.append(card);
+    actions.style.display="";
+  }else{
+    meta.textContent=t("meta",{slot:slotEmoji+" "+t(tab),i:cs.length,n:cs.length});
+    deck.className="deck last";
+    const p=el("div","donepanel"); p.dataset.demo="all-done";
+    p.append(el("div","big",tab==="night"?"🌙":(tab==="morning"?"🌞":"🏡")));
+    p.append(el("h2","",t("doneTitle_"+tab)),el("p","",t("doneSub_"+tab,{n:cs.length})));
+    if(tab==="night") p.append(recapNode());
+    const b=el("button","btn main",t("doneBtn_"+tab)); b.type="button"; b.dataset.demo="finish-button";
+    b.onclick=()=>{
+      if(tab==="night"){toast(t("goodnight"));confetti();}
+      else{tab=SLOTS[(SLOTS.findIndex(s=>s.id===tab)+1)%3].id;toast(t("movedOn"));render();}
+    };
+    p.append(b); deck.append(p);
+    actions.style.display="none";
+  }
+  const pr=document.getElementById("praise");
+  if(praiseKey){pr.textContent=t(praiseKey);pr.hidden=false;}else pr.hidden=true;
+  document.getElementById("btnUndo").disabled=history.length===0;
+  document.getElementById("btnDelete").style.display=(cur&&cur.custom)?"":"none";
+  renderLater(cur);
+  renderOrder();
+}
+function renderLater(cur){
+  const box=document.getElementById("laterbox");
+  box.innerHTML="";
+  if(!laterOpen||!cur){box.hidden=true;document.getElementById("actions").style.display=cur?"":"none";return;}
+  document.getElementById("actions").style.display="none";
+  box.append(el("div","lt",t("laterAsk")));
+  const r=el("div","lr");
+  [[5,"later5"],[30,"later30"],[60,"later60"]].forEach(p=>{
+    const b=el("button","",t(p[1])); b.type="button"; b.dataset.demo="later-"+p[0];
+    b.onclick=()=>{laterOpen=false;act("later",p[0]);};
+    r.append(b);
+  });
+  const c=el("button","cancel",t("laterCancel")); c.type="button"; c.dataset.demo="later-cancel";
+  c.onclick=()=>{laterOpen=false;render();};
+  r.append(c);
+  box.append(r); box.hidden=false;
+}
+
+function act(kind,mins){
+  if(busy) return;
+  const cur=currentCard(tab); if(!cur) return;
+  busy=true;
+  const c=document.getElementById("card");
+  if(c) c.classList.add(kind==="done"?"out-done":"out-later");
+  setTimeout(()=>{
+    const entry={id:cur.id,kind,slot:tab,bump:false,prevStreak:S.streak,prevLast:S.lastDate};
+    if(kind==="done"){
+      S.done[cur.id]=true;
+      praiseKey=cur.custom?"praise_custom":"praise_"+cur.id;
+      toast(t("doneToast"));
+    }else{
+      S.later[cur.id]=(S.later[cur.id]||0)+1;
+      S.wake=S.wake||{};
+      const at=Date.now()+(mins||5)*60000;
+      S.wake[cur.id]=at;
+      const d=new Date(at);
+      toast(t("laterAt",{m:String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}));
+    }
+    history.push(entry);
+    const finished=cardsFor(tab).every(x=>S.done[x.id]);
+    if(finished){
+      if(tab==="night"&&S.lastDate!==today()){S.streak++;S.lastDate=today();entry.bump=true;}
+      confetti();
+    }
+    save(); busy=false; render();
+  },kind==="done"?280:260);
+}
+
+function undo(){
+  const e=history.pop();
+  if(!e){toast(t("nothingUndo"));return;}
+  praiseKey=null;
+  if(e.kind==="done") delete S.done[e.id];
+  else S.later[e.id]=Math.max(0,(S.later[e.id]||1)-1);
+  if(e.bump){S.streak=e.prevStreak;S.lastDate=e.prevLast;}
+  if(S.wake&&e.kind==="later") delete S.wake[e.id];
+  laterOpen=false;
+  tab=e.slot; save(); toast(t("undoToast")); render();
+}
+
+let toastTimer;
+function toast(msg){
+  const n=document.getElementById("toast"); n.textContent=msg; n.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>n.classList.remove("show"),1800);
+}
+
+function confetti(){
+  const box=document.getElementById("confetti");
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const n=reduce?10:56;
+  const colors=["#e8845a","#f2c14e","#7f9a6b","#6ba3d6","#e58fa3","#fff"];
+  const emojis=["🎉","✨","⭐","🎊","🌙"];
+  for(let i=0;i<n;i++){
+    const s=document.createElement("span");
+    if(i%7===0){s.textContent=emojis[i%emojis.length];s.style.fontSize=(18+Math.random()*14)+"px";}
+    else{
+      const w=6+Math.random()*8; s.style.width=w+"px"; s.style.height=(w*1.6)+"px";
+      s.style.background=colors[i%colors.length]; s.style.borderRadius="2px";
+      s.style.border="1px solid rgba(90,70,54,.15)";
+    }
+    s.style.left=(Math.random()*100)+"vw";
+    const dur=2.2+Math.random()*1.8;
+    s.style.animationDuration=dur+"s";
+    s.style.animationDelay=(Math.random()*.6)+"s";
+    box.append(s);
+    setTimeout(()=>s.remove(),(dur+.8)*1000+200);
+  }
+}
+
+// events
+document.getElementById("btnDone").onclick=()=>act("done");
+document.getElementById("btnLater").onclick=()=>{if(busy)return;laterOpen=true;render();};
+document.getElementById("btnUndo").onclick=undo;
+document.getElementById("btnTip").onclick=()=>{tipOpen=true;render();};
+document.getElementById("btnDelete").onclick=()=>{
+  const cur=currentCard(tab);
+  if(cur&&cur.custom){
+    S.custom=S.custom.filter(c=>c.id!==cur.id);
+    delete S.done[cur.id]; delete S.later[cur.id];
+    history=history.filter(h=>h.id!==cur.id);
+    save(); toast(t("deleted")); render();
+  }
+};
+document.getElementById("btnReset").onclick=()=>{
+  S.done={};S.later={};S.wake={};history=[];praiseKey=null;laterOpen=false;
+  if(S.lastDate===today()){S.streak=Math.max(0,S.streak-1);S.lastDate=yesterday();}
+  save(); toast(t("resetToast")); render();
+};
+document.getElementById("addForm").onsubmit=e=>{
+  e.preventDefault();
+  const inp=document.getElementById("addInput"), v=inp.value.trim();
+  if(!v){toast(t("emptyAdd"));return;}
+  S.custom.push({id:"c"+Date.now(),slot:tab,emoji:"📝",text:v});
+  inp.value=""; save(); toast(t("added")); render();
+};
+document.querySelectorAll("[data-lang]").forEach(b=>{
+  b.onclick=()=>{
+    lang=b.dataset.lang;
+    try{localStorage.setItem("lang",lang);}catch(e){}
+    applyLang();
+  };
+});
+
+// init
+(function(){
+  let l=null;
+  if(window.APP_LANG==="ja"||window.APP_LANG==="en") l=window.APP_LANG;
+  if(!l){
+    try{const q=new URLSearchParams(location.search).get("lang");if(q==="ja"||q==="en") l=q;}catch(e){}
+  }
+  if(!l){
+    try{const sv=localStorage.getItem("lang");if(sv==="ja"||sv==="en") l=sv;}catch(e){}
+  }
+  lang=l||"en";
+  S=loadState(); tab=slotNow(); lastSlot=tab; tipOpen=S.tipDate!==today(); save();
+  applyLang();
+  setInterval(checkSlot,30000);
+})();
+</script>
+</body>
+</html>
