@@ -24,7 +24,7 @@ body[data-theme="night"] .deck::before,body[data-theme="night"] .deck::after{bac
 *{box-sizing:border-box}
 html,body{margin:0}
 body{
-  min-height:100vh; color:var(--page-ink); transition:background-color .5s,color .5s;
+  min-height:100vh; color:var(--page-ink);
   font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;
   background-color:var(--bg);
   background-image:radial-gradient(var(--dot) 1.2px,transparent 1.4px);
@@ -32,6 +32,7 @@ body{
   line-height:1.5;
 }
 button,input{font:inherit;color:inherit}
+[hidden]{display:none!important}
 button{cursor:pointer}
 :focus-visible{outline:3px solid #3f7fd0;outline-offset:2px}
 .wrap{max-width:520px;margin:0 auto;padding:14px 16px 40px}
@@ -111,13 +112,23 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;ma
 .order li.isdone .tx{opacity:.55;text-decoration:line-through}
 .order li button{border:0;background:#f0e2c4;color:#a84a27;border-radius:10px;width:34px;height:34px;font-size:16px;font-weight:800}
 .order li button[disabled]{opacity:.3;cursor:default}
+.toggles{margin-top:16px;background:var(--paper);border:2px solid var(--line);border-radius:18px;box-shadow:0 4px 0 var(--shadow);padding:12px 14px;color:#5a4636}
+.toggles h3{margin:0 0 8px;font-size:14px;color:#7a634a}
+.toggles ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.toggles li{display:flex;align-items:center;gap:8px;background:#fbf3e4;border:2px solid #f0e2c4;border-radius:14px;padding:6px 8px 6px 12px;font-weight:700;font-size:14px}
+.toggles li .tx{flex:1;min-width:0;overflow-wrap:anywhere}
+.toggles li.off .tx{opacity:.5}
+.toggles li button{border:0;border-radius:12px;min-width:52px;height:34px;padding:0 10px;font-weight:800;font-size:13px;background:var(--sage);color:#fff}
+.toggles li.off button{background:#ddd;color:#666}
 .tools{display:flex;justify-content:center;gap:16px;margin-top:16px;flex-wrap:wrap}
 .link{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px;padding:4px}
 .link[disabled]{opacity:.4;cursor:default;text-decoration:none}
 .donepanel{position:relative;z-index:1;background:var(--paper);border:2px solid var(--line);border-radius:22px;box-shadow:0 7px 0 var(--shadow);padding:34px 20px;text-align:center;animation:pop .4s ease both}
-.donepanel .big{font-size:76px;animation:bob 2.6s ease-in-out 3}
+.donepanel .big{font-size:76px}
 .donepanel h2{margin:10px 0 6px;font-size:30px;color:var(--accent)}
 .donepanel p{margin:0 0 22px;color:var(--muted);font-size:15px}
+.copybtn{margin-top:12px;border:0;border-radius:22px;padding:8px 16px;font-weight:700;font-size:14px;background:var(--line);color:#5a4636;box-shadow:0 3px 0 #dfcba2}
+.copytext{margin:10px auto 0;padding:8px 12px;background:#fbf3e4;border:2px dashed #dcc799;border-radius:12px;font-size:14px;font-weight:700;color:#5a4636;user-select:all;overflow-wrap:anywhere}
 .recap{background:#fbf3e4;border:2px solid #f0e2c4;border-radius:18px;padding:12px 14px 10px;margin:0 0 22px;color:#5a4636}
 .recap .rt{font-size:13px;font-weight:700;color:#7a634a}
 .recap .rn{font-size:30px;font-weight:800;color:var(--accent);line-height:1.2;margin:2px 0 8px}
@@ -177,6 +188,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;ma
       <button class="btn sub" id="btnLater" data-demo="later-button" type="button" data-i18n="later"></button>
     </div>
     <section class="order" id="order" data-demo="order-list" hidden></section>
+    <section class="toggles" id="toggles" data-demo="card-toggles"></section>
     <div class="tools">
       <button class="link" id="btnTip" data-demo="tip-again" type="button" data-i18n="tipAgain"></button>
       <button class="link" id="btnUndo" data-demo="undo-button" type="button" data-i18n="undo"></button>
@@ -211,6 +223,8 @@ const I18N = {
     doneTitle_night:"今夜もOK！", doneTitle_morning:"今日もいってらっしゃい！", doneTitle_home:"おかえり、OK！",
     doneSub_night:"{n}枚ぜんぶ完了。ぐっすり眠れそうだね", doneSub_morning:"{n}枚ぜんぶ完了。安心して出かけよう", doneSub_home:"{n}枚ぜんぶ完了。ほっとひと息つこう",
     doneBtn_night:"おやすみなさい", doneBtn_morning:"次の時間帯へ", doneBtn_home:"次の時間帯へ",
+    copyBtn:"📋 結果をコピー", copied:"コピーしました", copyManual:"下の文章をコピーして送ってね",
+    shareText:"{title} {a}/{b}枚", shareApp:"One Card Home",
     goodnight:"おやすみ 🌙 また明日ね", movedOn:"次の時間帯にきりかえたよ",
     laterToast:"あとでまた出すね", laterAsk:"⏰ いつ、また出す？", later5:"5分後", later30:"30分後", later60:"1時間後", laterCancel:"やめる", laterAt:"{m}にまた出すね", doneToast:"えらい！", undoToast:"ひとつ戻しました", resetToast:"今日の分をリセットしました",
     nothingUndo:"戻せるものがないよ",
@@ -219,6 +233,7 @@ const I18N = {
     added:"カードを足したよ", emptyAdd:"カードの内容を入れてね", deleted:"カードを消しました",
     custom:"自分で足したカード", emptyDeck:"カードがありません",
     orderTitle:"↕ 自分のカードの順番", up:"上へ", down:"下へ", moved:"順番を変えたよ",
+    toggleTitle:"🎛 {slot}のカード（オン・オフ）", on:"ON", off:"お休み", toggleAria:"{c}：オン・オフ切り替え", toggledOn:"カードをオンにしました", toggledOff:"今日はお休みにしました", allOff:"このカードはぜんぶお休み中です",
     praise_custom:"✨ ナイス！自分のルール、えらい",
     praise_m1:"✨ ナイス！これで安心して出かけられるね",
     praise_m2:"🌿 ばっちり。留守中も安心だね",
@@ -246,6 +261,8 @@ const I18N = {
     doneTitle_night:"Tonight is all set!", doneTitle_morning:"Have a great day!", doneTitle_home:"Welcome home, all set!",
     doneSub_night:"All {n} cards done. You can sleep well.", doneSub_morning:"All {n} cards done. Head out with peace of mind.", doneSub_home:"All {n} cards done. Time to relax.",
     doneBtn_night:"Good night", doneBtn_morning:"Next time of day", doneBtn_home:"Next time of day",
+    copyBtn:"📋 Copy result", copied:"Copied", copyManual:"Copy the text below and send it",
+    shareText:"{title} {a}/{b} cards", shareApp:"One Card Home",
     goodnight:"Good night 🌙 See you tomorrow", movedOn:"Switched to the next time of day",
     laterToast:"I'll show it again soon", laterAsk:"⏰ When should it come back?", later5:"In 5 min", later30:"In 30 min", later60:"In 1 hour", laterCancel:"Cancel", laterAt:"I'll show it again at {m}", doneToast:"Nice work!", undoToast:"Undone", resetToast:"Today has been reset",
     nothingUndo:"Nothing to undo",
@@ -254,6 +271,7 @@ const I18N = {
     added:"Card added", emptyAdd:"Please type something", deleted:"Card deleted",
     custom:"Your own card", emptyDeck:"No cards",
     orderTitle:"↕ Order of your cards", up:"Move up", down:"Move down", moved:"Order changed",
+    toggleTitle:"🎛 \"{slot}\" cards (on/off)", on:"ON", off:"Rest", toggleAria:"{c}: switch on or off", toggledOn:"Card turned on", toggledOff:"Card is resting", allOff:"All cards here are resting",
     praise_custom:"✨ Nice! Great job keeping your own rule",
     praise_m1:"✨ Nice! You can head out with peace of mind",
     praise_m2:"🌿 Perfect. Home is safe while you're away",
@@ -303,10 +321,11 @@ let laterOpen = false;
 let tipOpen = false;
 let bannerSlot = null;
 let lastSlot = null;
+let lastSig = null;
 const KEY = "onecardhome.v1";
 let lang = "en";
 let tab = "night";
-let history = [];
+let undoStack = [];
 let busy = false;
 let praiseKey = null;
 let S = null;
@@ -336,7 +355,7 @@ function t(k,v){
   return s;
 }
 function cardsFor(slot){
-  const base=CARDS.filter(c=>c.slot===slot);
+  const base=CARDS.filter(c=>c.slot===slot&&!(S.off&&S.off[c.id]));
   const cu=S.custom.filter(c=>c.slot===slot).map(c=>({id:c.id,slot:c.slot,emoji:c.emoji,ja:c.text,en:c.text,jaH:t("custom"),enH:"",custom:true}));
   return base.concat(cu);
 }
@@ -347,6 +366,28 @@ function moveCustom(id,dir){
   const a=S.custom.indexOf(slotCards[i]), b=S.custom.indexOf(slotCards[j]);
   const tmp=S.custom[a]; S.custom[a]=S.custom[b]; S.custom[b]=tmp;
   save(); toast(t("moved")); render();
+}
+function renderToggles(){
+  const box=document.getElementById("toggles");
+  box.innerHTML="";
+  box.append(el("h3","",t("toggleTitle",{slot:t(tab)})));
+  const ul=el("ul","");
+  CARDS.filter(c=>c.slot===tab).forEach(c=>{
+    const off=!!(S.off&&S.off[c.id]);
+    const li=el("li",off?"off":"");
+    li.append(el("span","",c.emoji),el("span","tx",c[lang]));
+    const b=el("button","",off?t("off"):t("on")); b.type="button"; b.dataset.demo="toggle-"+c.id;
+    b.setAttribute("aria-pressed",String(!off));
+    b.setAttribute("aria-label",t("toggleAria",{c:c[lang]}));
+    b.onclick=()=>{
+      S.off=S.off||{};
+      if(off) delete S.off[c.id]; else {S.off[c.id]=true; delete S.done[c.id];}
+      undoStack=undoStack.filter(h=>h.id!==c.id);
+      save(); toast(t(off?"toggledOn":"toggledOff")); render();
+    };
+    li.append(b); ul.append(li);
+  });
+  box.append(ul);
 }
 function renderOrder(){
   const box=document.getElementById("order");
@@ -460,7 +501,11 @@ function renderBanner(){
 function checkSlot(){
   const n=slotNow();
   if(lastSlot&&n!==lastSlot){bannerSlot=n;render();}
-  else if(!laterOpen&&!busy){render();}
+  else if(!laterOpen&&!busy){
+    const c=currentCard(tab), sig=c?c.id:"none";
+    if(sig!==lastSig){render();}
+  }
+  const c2=currentCard(tab); lastSig=c2?c2.id:"none";
   lastSlot=n;
 }
 function renderTip(){
@@ -514,6 +559,10 @@ function render(){
   }else{
     meta.textContent=t("meta",{slot:slotEmoji+" "+t(tab),i:cs.length,n:cs.length});
     deck.className="deck last";
+    if(cs.length===0){
+      const e=el("div","donepanel",t("allOff")); e.dataset.demo="all-off";
+      deck.append(e); actions.style.display="none";
+    }else{
     const p=el("div","donepanel"); p.dataset.demo="all-done";
     p.append(el("div","big",tab==="night"?"🌙":(tab==="morning"?"🌞":"🏡")));
     p.append(el("h2","",t("doneTitle_"+tab)),el("p","",t("doneSub_"+tab,{n:cs.length})));
@@ -523,15 +572,33 @@ function render(){
       if(tab==="night"){toast(t("goodnight"));confetti();}
       else{tab=SLOTS[(SLOTS.findIndex(s=>s.id===tab)+1)%3].id;toast(t("movedOn"));render();}
     };
-    p.append(b); deck.append(p);
+    p.append(b);
+    const cb=el("button","copybtn",t("copyBtn")); cb.type="button"; cb.dataset.demo="copy-result";
+    cb.onclick=()=>{
+      const txt=t("shareText",{title:t("doneTitle_"+tab),a:cs.length,b:cs.length})+" 🏠 "+t("shareApp");
+      const manual=()=>{
+        let box=p.querySelector(".copytext");
+        if(!box){box=el("div","copytext"); box.dataset.demo="copy-text"; p.append(box);}
+        box.textContent=txt; toast(t("copyManual"));
+      };
+      try{
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(txt).then(()=>toast(t("copied")),manual);
+        }else manual();
+      }catch(e){manual();}
+    };
+    p.append(el("br"),cb);
+    deck.append(p);
     actions.style.display="none";
+    }
   }
   const pr=document.getElementById("praise");
   if(praiseKey){pr.textContent=t(praiseKey);pr.hidden=false;}else pr.hidden=true;
-  document.getElementById("btnUndo").disabled=history.length===0;
+  document.getElementById("btnUndo").disabled=undoStack.length===0;
   document.getElementById("btnDelete").style.display=(cur&&cur.custom)?"":"none";
   renderLater(cur);
   renderOrder();
+  renderToggles();
 }
 function renderLater(cur){
   const box=document.getElementById("laterbox");
@@ -571,7 +638,7 @@ function act(kind,mins){
       const d=new Date(at);
       toast(t("laterAt",{m:String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}));
     }
-    history.push(entry);
+    undoStack.push(entry);
     const finished=cardsFor(tab).every(x=>S.done[x.id]);
     if(finished){
       if(tab==="night"&&S.lastDate!==today()){S.streak++;S.lastDate=today();entry.bump=true;}
@@ -582,7 +649,7 @@ function act(kind,mins){
 }
 
 function undo(){
-  const e=history.pop();
+  const e=undoStack.pop();
   if(!e){toast(t("nothingUndo"));return;}
   praiseKey=null;
   if(e.kind==="done") delete S.done[e.id];
@@ -602,7 +669,7 @@ function toast(msg){
 function confetti(){
   const box=document.getElementById("confetti");
   const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const n=reduce?10:56;
+  const n=reduce?8:28;
   const colors=["#e8845a","#f2c14e","#7f9a6b","#6ba3d6","#e58fa3","#fff"];
   const emojis=["🎉","✨","⭐","🎊","🌙"];
   for(let i=0;i<n;i++){
@@ -614,7 +681,7 @@ function confetti(){
       s.style.border="1px solid rgba(90,70,54,.15)";
     }
     s.style.left=(Math.random()*100)+"vw";
-    const dur=2.2+Math.random()*1.8;
+    const dur=1.6+Math.random()*1.2;
     s.style.animationDuration=dur+"s";
     s.style.animationDelay=(Math.random()*.6)+"s";
     box.append(s);
@@ -632,12 +699,12 @@ document.getElementById("btnDelete").onclick=()=>{
   if(cur&&cur.custom){
     S.custom=S.custom.filter(c=>c.id!==cur.id);
     delete S.done[cur.id]; delete S.later[cur.id];
-    history=history.filter(h=>h.id!==cur.id);
+    undoStack=undoStack.filter(h=>h.id!==cur.id);
     save(); toast(t("deleted")); render();
   }
 };
 document.getElementById("btnReset").onclick=()=>{
-  S.done={};S.later={};S.wake={};history=[];praiseKey=null;laterOpen=false;
+  S.done={};S.later={};S.wake={};undoStack=[];praiseKey=null;laterOpen=false;
   if(S.lastDate===today()){S.streak=Math.max(0,S.streak-1);S.lastDate=yesterday();}
   save(); toast(t("resetToast")); render();
 };
@@ -669,7 +736,7 @@ document.querySelectorAll("[data-lang]").forEach(b=>{
   lang=l||"en";
   S=loadState(); tab=slotNow(); lastSlot=tab; tipOpen=S.tipDate!==today(); save();
   applyLang();
-  setInterval(checkSlot,30000);
+  setInterval(function(){if(!document.hidden)checkSlot();},30000);
 })();
 </script>
 </body>
